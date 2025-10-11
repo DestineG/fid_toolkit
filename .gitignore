@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.manifest
+*.spec
+
+# Virtual Environments
+env/
+venv/
+.venv/
+EdgeInfer/  # 如果你的 conda env 在项目里
+
+# PyTorch / TorchVision
+*.pt
+*.pth
+
+# Data / Outputs
+datasets/
+test/
+logs/
+*.log
+*.npy
+*.npz
+*.h5
+*.hdf5
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# OS / System
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Cache
+*.cache
+*.tmp
+
+# Ignore compiled C extensions
+*.c
+*.cpp
+*.so
+*.dll
+*.dylib
+
+# Ignore PyInstaller outputs
+dist/
+build/
+*.spec
