@@ -24,6 +24,7 @@ import torch
 
 from src.dataset.fid_dataloader import FIDDataModule
 from src.models.inceptionV3_fid import InceptionV3_FID
+from src.models.inceptionV4_fid import InceptionV4_FID
 from src.utils.calc_metrics import fid_from_features
 
 def calc_standard_fid(real_path, fake_path, batch_size=32, device='cuda'):
@@ -123,18 +124,57 @@ def calc_both_fid(real_path, fake_path, batch_size=32, device='cuda'):
 
     return fid_standard, fid_spatial
 
-if __name__ == "__main__":
-    # Standard FID: 115.47917960606726
-    # Spatial FID: 1.4002741699667083
-    # real_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_new_triAlpha011\test_latest\images\real_B"
-    # fake_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_new_triAlpha011\test_latest\images\fake_B"
+def calc_standard_fidV4(real_path, fake_path, batch_size=32, device='cuda'):
+    data = FIDDataModule(real_path, fake_path, batch_size=batch_size)
+    real_loader, fake_loader = data.get_loaders()
 
-    # Standard FID: 115.47917960606726
-    # Spatial FID: 1.4002741699667083
+    model = InceptionV4_FID(device=device)
+
+    # real features
+    real_feats = []
+    for imgs in tqdm(real_loader, desc="Extracting real features"):
+        imgs = imgs.to(device)
+        # (B*H*W, C)
+        feats = model(imgs)
+        real_feats.append(feats.cpu())
+    real_feats = torch.cat(real_feats, dim=0).numpy()
+
+    # fake features
+    fake_feats = []
+    for imgs in tqdm(fake_loader, desc="Extracting fake features"):
+        imgs = imgs.to(device)
+        # (B*H*W, C)
+        feats = model(imgs)
+        fake_feats.append(feats.cpu())
+    fake_feats = torch.cat(fake_feats, dim=0).numpy()
+
+    # 计算 FID
+    print("real_feats shape:", real_feats.shape)
+    print("fake_feats shape:", fake_feats.shape)
+    fid_value = fid_from_features(real_feats, fake_feats)
+    return fid_value
+
+
+# python -m src.main
+if __name__ == "__main__":
+    # Standard FID: 19.334657457878283
+    # Spatial FID: 
+    # Standard FIDV4: 13.671175358833805
     real_path = r"G:\雨雾模型实验对比\test\bdd100k_1_20_default\test_latest\images\real_B"
     fake_path = r"G:\雨雾模型实验对比\test\bdd100k_1_20_default\test_latest\images\fake_B"
 
-    # python -m src.main
-    fid_std, fid_spatial = calc_both_fid(real_path, fake_path, batch_size=16, device='cuda')
+    # Standard FID: 115.47917960606726
+    # Spatial FID: 1.4002741699667083
+    # Standard FIDV4: 117.53998041378354
+    # real_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_new_triAlpha011\test_latest\images\real_B"
+    # fake_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_new_triAlpha011\test_latest\images\fake_B"
+
+    fid_std = calc_standard_fid(real_path, fake_path, batch_size=16, device='cuda')
     print("Standard FID:", fid_std)
-    print("Spatial FID:", fid_spatial)
+
+    # fid_std, fid_spatial = calc_both_fid(real_path, fake_path, batch_size=16, device='cuda')
+    # print("Standard FID:", fid_std)
+    # print("Spatial FID:", fid_spatial)
+
+    # fid_stdV4 = calc_standard_fidV4(real_path, fake_path, batch_size=16, device='cuda')
+    # print("Standard FIDV4:", fid_stdV4)
