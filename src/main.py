@@ -19,6 +19,8 @@
 # avgpool: torch.Size([1, 2048, 1, 1])
 # dropout: torch.Size([1, 2048, 1, 1])
 
+import random, shutil, tempfile, traceback
+from pathlib import Path
 from tqdm import tqdm
 import torch
 
@@ -154,22 +156,88 @@ def calc_standard_fidV4(real_path, fake_path, batch_size=32, device='cuda'):
     fid_value = fid_from_features(real_feats, fake_feats)
     return fid_value
 
+def compute_self_fid(dataset_path, fid_func, split_ratio=0.5, batch_size=32, device='cuda', keep_temp=False):
+    """
+    在一个数据集上自动划分两部分计算 self-FID
+    """
+    exts = {'.jpg', '.jpeg', '.png', '.bmp', '.tiff'}
+    all_imgs = [str(p) for p in Path(dataset_path).rglob("*") if p.suffix.lower() in exts]
+    if len(all_imgs) < 10:
+        raise ValueError("数据太少，无法计算 self-FID")
+
+    random.shuffle(all_imgs)
+    split_point = int(len(all_imgs) * split_ratio)
+    real_imgs, fake_imgs = all_imgs[:split_point], all_imgs[split_point:]
+
+    # ✅ 创建临时目录
+    tmp_root = Path(tempfile.mkdtemp(prefix="self_fid_"))
+    real_dir, fake_dir = tmp_root / "real", tmp_root / "fake"
+
+    try:
+        # ✅ 所有可能出错的逻辑都放在 try 内
+        real_dir.mkdir(parents=True, exist_ok=True)
+        fake_dir.mkdir(parents=True, exist_ok=True)
+
+        # 拷贝部分图片
+        for i, src in enumerate(real_imgs):
+            shutil.copy(src, real_dir / f"{i:06d}{Path(src).suffix}")
+        for i, src in enumerate(fake_imgs):
+            shutil.copy(src, fake_dir / f"{i:06d}{Path(src).suffix}")
+
+        print(f"✔ 临时划分完成: real={len(real_imgs)}, fake={len(fake_imgs)}")
+        print(f"📁 临时路径: {tmp_root}")
+
+        # 计算 FID
+        fid_value = fid_func(str(real_dir), str(fake_dir), batch_size=batch_size, device=device)
+        return fid_value
+
+    except Exception as e:
+        print("❌ self-FID 计算过程中出错：")
+        traceback.print_exc()
+        return None
+
+    finally:
+        # ✅ 无论是否出错，都执行清理逻辑
+        if not keep_temp:
+            shutil.rmtree(tmp_root, ignore_errors=True)
+            print("🧹 临时目录已清理")
+        else:
+            print(f"⚠ 保留临时目录: {tmp_root}")
+
 
 # python -m src.main
 if __name__ == "__main__":
+    # fid估计
+
     # Standard FID: 19.334657457878283
     # Spatial FID: 
     # Standard FIDV4: 13.671175358833805
-    real_path = r"G:\雨雾模型实验对比\test\bdd100k_1_20_default\test_latest\images\real_B"
-    fake_path = r"G:\雨雾模型实验对比\test\bdd100k_1_20_default\test_latest\images\fake_B"
+    # Self FID: 15.63691913239051(calc_standard_fid)
+    # real_path = r"G:\雨雾模型实验对比\test\bdd100k_1_20_default\test_latest\images\real_B"
+    # fake_path = r"G:\雨雾模型实验对比\test\bdd100k_1_20_default\test_latest\images\fake_B"
 
     # Standard FID: 115.47917960606726
     # Spatial FID: 1.4002741699667083
     # Standard FIDV4: 117.53998041378354
+    # Self FID: 52.834578067625415(calc_standard_fid)
     # real_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_new_triAlpha011\test_latest\images\real_B"
     # fake_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_new_triAlpha011\test_latest\images\fake_B"
 
-    fid_std = calc_standard_fid(real_path, fake_path, batch_size=16, device='cuda')
+    # fid下限估计
+
+    # Standard FID: 23.940437518594827
+    # real_path = r"G:\实验室服务器1内容备份\data\datasets\bdd100k_1_20\trainA"
+    # fake_path = r"G:\实验室服务器1内容备份\data\datasets\bdd100k_1_20\trainB"
+
+    # Standard FID: 24.84805000888763
+    real_path = r"G:\实验室服务器1内容备份\data\datasets\bdd100k_1_20\testA"
+    fake_path = r"G:\实验室服务器1内容备份\data\datasets\bdd100k_1_20\testB"
+
+    # Standard FID: 177.4837225338313
+    # real_path = r"G:\无人机实测数据整理\新\晴天\热成像_Thermal_T"
+    # fake_path = r"G:\无人机实测数据整理\新\中雨\热成像_Thermal_T"
+
+    fid_std = calc_standard_fid(real_path, fake_path, batch_size=64, device='cuda')
     print("Standard FID:", fid_std)
 
     # fid_std, fid_spatial = calc_both_fid(real_path, fake_path, batch_size=16, device='cuda')
@@ -178,3 +246,14 @@ if __name__ == "__main__":
 
     # fid_stdV4 = calc_standard_fidV4(real_path, fake_path, batch_size=16, device='cuda')
     # print("Standard FIDV4:", fid_stdV4)
+
+    # fid上限估计
+
+    # Self FID: 19.446476164826954(calc_standard_fid)
+    # real_path = r"G:\实验室服务器1内容备份\data\datasets\bdd100k_1_20\testB"
+
+    # Self FID: 107.0260542818958(calc_standard_fid)
+    # real_path = r"G:\无人机实测数据整理\新\中雨\热成像_Thermal_T"
+
+    # fid_self = compute_self_fid(real_path, calc_standard_fid, batch_size=16, device='cuda')
+    # print("Self FID:", fid_self)
