@@ -69,6 +69,13 @@ fid/
 └── README.md                  # This file
 ```
 
+| FID类型          | 特征网络             | 输入分辨率   | 特征维度        | 主要用途      |
+| -------------- | ---------------- | ------- | ----------- | --------- |
+| **FID / sFID** | InceptionV3 / V4 | 299×299 | 2048 / 1536 | 图像质量评估    |
+| **CLIP-FID**   | CLIP ViT-B/32    | 224×224 | 512         | 文生图语义一致性  |
+| **DINO-FID**   | DINO ViT-B/16    | 224×224 | 768         | 自监督生成质量评估 |
+| **SwAV-FID**   | SwAV ResNet50    | 224×224 | 2048        | 无监督图像生成   |
+
 ## Notes
 
 - Images are automatically resized to 299x299 pixels (InceptionV3/V4 input size)

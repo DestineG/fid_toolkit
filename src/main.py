@@ -27,6 +27,7 @@ import torch
 from src.dataset.fid_dataloader import FIDDataModule
 from src.models.inceptionV3_fid import InceptionV3_FID
 from src.models.inceptionV4_fid import InceptionV4_FID
+from src.models.clip_fid import CLIP_FID
 from src.utils.calc_metrics import fid_from_features
 
 def calc_standard_fid(real_path, fake_path, batch_size=32, device='cuda'):
@@ -156,6 +157,37 @@ def calc_standard_fidV4(real_path, fake_path, batch_size=32, device='cuda'):
     fid_value = fid_from_features(real_feats, fake_feats)
     return fid_value
 
+# 语义相似度
+def calc_clip_fid(real_path, fake_path, batch_size=32, device='cuda'):
+    data = FIDDataModule(real_path, fake_path, batch_size=batch_size, image_size=224)
+    real_loader, fake_loader = data.get_loaders()
+
+    model = CLIP_FID(device=device)
+
+    # real features
+    real_feats = []
+    for imgs in tqdm(real_loader, desc="Extracting real features"):
+        imgs = imgs.to(device)
+        # (B*H*W, C)
+        feats = model(imgs)
+        real_feats.append(feats.cpu())
+    real_feats = torch.cat(real_feats, dim=0).numpy()
+
+    # fake features
+    fake_feats = []
+    for imgs in tqdm(fake_loader, desc="Extracting fake features"):
+        imgs = imgs.to(device)
+        # (B*H*W, C)
+        feats = model(imgs)
+        fake_feats.append(feats.cpu())
+    fake_feats = torch.cat(fake_feats, dim=0).numpy()
+
+    # 计算 FID
+    print("real_feats shape:", real_feats.shape)
+    print("fake_feats shape:", fake_feats.shape)
+    fid_value = fid_from_features(real_feats, fake_feats)
+    return fid_value
+
 def compute_self_fid(dataset_path, fid_func, split_ratio=0.5, batch_size=32, device='cuda', keep_temp=False):
     """
     在一个数据集上自动划分两部分计算 self-FID
@@ -165,7 +197,7 @@ def compute_self_fid(dataset_path, fid_func, split_ratio=0.5, batch_size=32, dev
     if len(all_imgs) < 10:
         raise ValueError("数据太少，无法计算 self-FID")
 
-    random.shuffle(all_imgs)
+    # random.shuffle(all_imgs)
     split_point = int(len(all_imgs) * split_ratio)
     real_imgs, fake_imgs = all_imgs[:split_point], all_imgs[split_point:]
 
@@ -212,16 +244,34 @@ if __name__ == "__main__":
     # Standard FID: 19.334657457878283
     # Spatial FID: 
     # Standard FIDV4: 13.671175358833805
-    # Self FID: 15.63691913239051(calc_standard_fid)
+    # CLIP FID: 4.53121456681344e-06
+    # Self FID: 15.63691913239051(calc_standard_fid shuffle)
     # real_path = r"G:\雨雾模型实验对比\test\bdd100k_1_20_default\test_latest\images\real_B"
     # fake_path = r"G:\雨雾模型实验对比\test\bdd100k_1_20_default\test_latest\images\fake_B"
+
+    # Standard FID: 19.65009738373634
+    # Spatial FID: 
+    # Standard FIDV4: 14.423221534487606
+    # CLIP FID: 3.4266141302199352e-06
+    # Self FID: 15.317200572103815(calc_standard_fid shuffle)
+    # real_path = r"G:\雨雾模型实验对比\test\bdd100k_1_20_AB_tri0\test_latest\images\real_B"
+    # fake_path = r"G:\雨雾模型实验对比\test\bdd100k_1_20_AB_tri0\test_latest\images\fake_B"
 
     # Standard FID: 115.47917960606726
     # Spatial FID: 1.4002741699667083
     # Standard FIDV4: 117.53998041378354
+    # CLIP FID: 0.38515492563833625
     # Self FID: 52.834578067625415(calc_standard_fid)
     # real_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_new_triAlpha011\test_latest\images\real_B"
     # fake_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_new_triAlpha011\test_latest\images\fake_B"
+
+    # Standard FID: 93.4126887919851
+    # Spatial FID: 0.6372413260083234
+    # Standard FIDV4: 102.39758010107957
+    # CLIP FID: 0.35653384475078276
+    # Self FID: 52.03511432028108(calc_standard_fid)
+    # real_path = r"G:\雨雾模型实验对比\test\\sunny2midrainy_new_triAlpha011_1280\test_latest\images\real_B"
+    # fake_path = r"G:\雨雾模型实验对比\test\\sunny2midrainy_new_triAlpha011_1280\test_latest\images\fake_B"
 
     # fid下限估计
 
@@ -230,22 +280,12 @@ if __name__ == "__main__":
     # fake_path = r"G:\实验室服务器1内容备份\data\datasets\bdd100k_1_20\trainB"
 
     # Standard FID: 24.84805000888763
-    real_path = r"G:\实验室服务器1内容备份\data\datasets\bdd100k_1_20\testA"
-    fake_path = r"G:\实验室服务器1内容备份\data\datasets\bdd100k_1_20\testB"
+    # real_path = r"G:\实验室服务器1内容备份\data\datasets\bdd100k_1_20\testA"
+    # fake_path = r"G:\实验室服务器1内容备份\data\datasets\bdd100k_1_20\testB"
 
     # Standard FID: 177.4837225338313
     # real_path = r"G:\无人机实测数据整理\新\晴天\热成像_Thermal_T"
     # fake_path = r"G:\无人机实测数据整理\新\中雨\热成像_Thermal_T"
-
-    fid_std = calc_standard_fid(real_path, fake_path, batch_size=64, device='cuda')
-    print("Standard FID:", fid_std)
-
-    # fid_std, fid_spatial = calc_both_fid(real_path, fake_path, batch_size=16, device='cuda')
-    # print("Standard FID:", fid_std)
-    # print("Spatial FID:", fid_spatial)
-
-    # fid_stdV4 = calc_standard_fidV4(real_path, fake_path, batch_size=16, device='cuda')
-    # print("Standard FIDV4:", fid_stdV4)
 
     # fid上限估计
 
@@ -255,5 +295,29 @@ if __name__ == "__main__":
     # Self FID: 107.0260542818958(calc_standard_fid)
     # real_path = r"G:\无人机实测数据整理\新\中雨\热成像_Thermal_T"
 
-    # fid_self = compute_self_fid(real_path, calc_standard_fid, batch_size=16, device='cuda')
-    # print("Self FID:", fid_self)
+    # Self FID: 113.84457093660306(calc_standard_fid)
+    # CLIP FID: 
+    # real_path = r"G:\无人机实测数据整理\新\晴天\热成像_Thermal_T"
+
+    # Self FID: 37.43724729717688(calc_standard_fid)
+    # real_path = r"G:\aug\sunny2midrainy_aug\testB"
+
+    # Self FID: 37.43724729717688(calc_standard_fid)
+    real_path = r"G:\aug\sunny2midrainy_aug\trainB"
+
+    # 结果计算
+    fid_self = compute_self_fid(real_path, calc_standard_fid, batch_size=32, device='cuda')
+    print("Self FID:", fid_self)
+
+    # fid_std = calc_standard_fid(real_path, fake_path, batch_size=64, device='cuda')
+    # print("Standard FID:", fid_std)
+
+    # fid_std, fid_spatial = calc_both_fid(real_path, fake_path, batch_size=32, device='cuda')
+    # print("Standard FID:", fid_std)
+    # print("Spatial FID:", fid_spatial)
+
+    # fid_stdV4 = calc_standard_fidV4(real_path, fake_path, batch_size=32, device='cuda')
+    # print("Standard FIDV4:", fid_stdV4)
+
+    # fid_clip = calc_clip_fid(real_path, fake_path, batch_size=64, device='cuda')
+    # print("CLIP FID:", fid_clip)
