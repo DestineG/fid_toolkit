@@ -273,6 +273,14 @@ if __name__ == "__main__":
     # real_path = r"G:\雨雾模型实验对比\test\\sunny2midrainy_new_triAlpha011_1280\test_latest\images\real_B"
     # fake_path = r"G:\雨雾模型实验对比\test\\sunny2midrainy_new_triAlpha011_1280\test_latest\images\fake_B"
 
+    # Standard FID: 28.68196687128316
+    # Spatial FID: 
+    # Standard FIDV4: 
+    # CLIP FID: 
+    # Self FID: (calc_standard_fid)
+    real_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_aug_default_epoch15\test_latest\images\real_B"
+    fake_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_aug_default_epoch15\test_latest\images\fake_B"
+
     # fid下限估计
 
     # Standard FID: 23.940437518594827
@@ -302,18 +310,18 @@ if __name__ == "__main__":
     # Self FID: 37.43724729717688(calc_standard_fid)
     # real_path = r"G:\aug\sunny2midrainy_aug\testB"
 
-    # Self FID: 37.43724729717688(calc_standard_fid)
-    real_path = r"G:\aug\sunny2midrainy_aug\trainB"
+    # Self FID: 28.424124005723744(calc_standard_fid)
+    # real_path = r"G:\aug\sunny2midrainy_aug\trainB"
 
     # 结果计算
-    fid_self = compute_self_fid(real_path, calc_standard_fid, batch_size=32, device='cuda')
-    print("Self FID:", fid_self)
 
-    # fid_std = calc_standard_fid(real_path, fake_path, batch_size=64, device='cuda')
-    # print("Standard FID:", fid_std)
+    # fid_self = compute_self_fid(real_path, calc_standard_fid, batch_size=32, device='cuda')
+    # print("Self FID:", fid_self)
 
-    # fid_std, fid_spatial = calc_both_fid(real_path, fake_path, batch_size=32, device='cuda')
-    # print("Standard FID:", fid_std)
+    fid_std = calc_standard_fid(real_path, fake_path, batch_size=32, device='cuda')
+    print("Standard FID:", fid_std)
+
+    # fid_spatial = calc_spatial_fid(real_path, fake_path, batch_size=32, device='cuda')
     # print("Spatial FID:", fid_spatial)
 
     # fid_stdV4 = calc_standard_fidV4(real_path, fake_path, batch_size=32, device='cuda')

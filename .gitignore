@@ -10,6 +10,7 @@ build/
 .eggs/
 *.manifest
 *.spec
+CLIP-main/
 
 # Virtual Environments
 env/
