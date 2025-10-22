@@ -273,13 +273,85 @@ if __name__ == "__main__":
     # real_path = r"G:\雨雾模型实验对比\test\\sunny2midrainy_new_triAlpha011_1280\test_latest\images\real_B"
     # fake_path = r"G:\雨雾模型实验对比\test\\sunny2midrainy_new_triAlpha011_1280\test_latest\images\fake_B"
 
-    # Standard FID: 28.68196687128316
+    # Standard FID: 40.41291449127269
     # Spatial FID: 
     # Standard FIDV4: 
     # CLIP FID: 
     # Self FID: (calc_standard_fid)
-    real_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_aug_default_epoch15\test_latest\images\real_B"
-    fake_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_aug_default_epoch15\test_latest\images\fake_B"
+    # real_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_aug_default\test_10\images\real_B"
+    # fake_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_aug_default\test_10\images\fake_B"
+
+    # Standard FID: 32.75868479692938
+    # Spatial FID: 
+    # Standard FIDV4: 
+    # CLIP FID: 
+    # Self FID: (calc_standard_fid)
+    # real_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_aug_default\test_15\images\real_B"
+    # fake_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_aug_default\test_15\images\fake_B"
+
+    # Standard FID: 37.803960369579265
+    # Spatial FID: 
+    # Standard FIDV4: 
+    # CLIP FID: 
+    # Self FID: (calc_standard_fid)
+    # real_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_aug_default\test_20\images\real_B"
+    # fake_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_aug_default\test_20\images\fake_B"
+
+    # Standard FID: 38.44904141482934
+    # Spatial FID: 
+    # Standard FIDV4: 
+    # CLIP FID: 
+    # Self FID: (calc_standard_fid)
+    # real_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_aug_default\test_25\images\real_B"
+    # fake_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_aug_default\test_25\images\fake_B"
+
+    # Standard FID: 26.124894112482234(diff=4.402442932128906, trace=21.72245118035333)
+    # Spatial FID: 
+    # Standard FIDV4: 
+    # CLIP FID: 
+    # Self FID: (calc_standard_fid)
+    real_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_aug_default\test_30\images\real_B"
+    fake_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_aug_default\test_30\images\fake_B"
+
+    # Standard FID: 34.57874908631109
+    # Spatial FID: 
+    # Standard FIDV4: 
+    # CLIP FID: 
+    # Self FID: (calc_standard_fid)
+    # real_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_aug_default\test_35\images\real_B"
+    # fake_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_aug_default\test_35\images\fake_B"
+
+    # Standard FID: 27.284779004811647
+    # Spatial FID: 
+    # Standard FIDV4: 
+    # CLIP FID: 
+    # Self FID: (calc_standard_fid)
+    # real_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_aug_default\test_40\images\real_B"
+    # fake_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_aug_default\test_40\images\fake_B"
+
+    # Standard FID: 36.689509606946054
+    # Spatial FID: 
+    # Standard FIDV4: 
+    # CLIP FID: 
+    # Self FID: (calc_standard_fid)
+    # real_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_aug_default\test_45\images\real_B"
+    # fake_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_aug_default\test_45\images\fake_B"
+
+    # Standard FID: 36.658175372059674
+    # Spatial FID: 
+    # Standard FIDV4: 
+    # CLIP FID: 
+    # Self FID: (calc_standard_fid)
+    # real_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_aug_default\test_50\images\real_B"
+    # fake_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_aug_default\test_50\images\fake_B"
+
+    # Standard FID: 83.37788074114476(diff=30.512704849243164, trace=52.86517589190161)
+    # Spatial FID: 
+    # Standard FIDV4: 
+    # CLIP FID: 
+    # Self FID: (calc_standard_fid)
+    # real_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_aug_default\test_latest\images\real_B"
+    # fake_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_aug_default\test_latest\images\fake_B"
 
     # fid下限估计
 
@@ -319,7 +391,7 @@ if __name__ == "__main__":
     # print("Self FID:", fid_self)
 
     fid_std = calc_standard_fid(real_path, fake_path, batch_size=32, device='cuda')
-    print("Standard FID:", fid_std)
+    print("data_real_path: {}\nStandard FID: {}".format(real_path, fid_std))
 
     # fid_spatial = calc_spatial_fid(real_path, fake_path, batch_size=32, device='cuda')
     # print("Spatial FID:", fid_spatial)

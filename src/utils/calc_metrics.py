@@ -34,7 +34,10 @@ def fid_from_features(feat_real: np.ndarray, feat_fake: np.ndarray) -> float:
     covmean = np.real_if_close(covmean)
 
     # 计算 FID
-    fid = diff.dot(diff) + np.trace(sigma1 + sigma2 - 2 * covmean)
+    diff = diff.dot(diff)
+    trace = np.trace(sigma1 + sigma2 - 2 * covmean)
+    fid = diff + trace
+    print(f"FID calculation details: diff={diff}, trace={trace}")
     return float(fid)
 
 
