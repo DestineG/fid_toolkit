@@ -11,7 +11,7 @@ class FIDDataset(Dataset):
     通用 FID 图像加载类
     仅接收一个图像文件夹路径，用于加载其中的所有图片。
     """
-    def __init__(self, root, image_size=299):
+    def __init__(self, root, image_size=299, use_finetuned=False):
         super().__init__()
         self.root = root
 
@@ -24,15 +24,26 @@ class FIDDataset(Dataset):
         if len(self.files) == 0:
             raise RuntimeError(f"{self.root} 下未找到图像文件。")
 
-        # Inception 模型标准预处理
-        self.transform = transforms.Compose([
-            transforms.Resize((image_size, image_size)),
-            transforms.ToTensor(),
-            transforms.Normalize(
-                mean=[0.485, 0.456, 0.406],  # ImageNet 均值
-                std=[0.229, 0.224, 0.225]   # ImageNet 方差
-            ),
-        ])
+        # Inception 模型标准预处理 或者 微调预处理
+        if not use_finetuned:
+            self.transform = transforms.Compose([
+                transforms.Resize((image_size, image_size)),
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    mean=[0.485, 0.456, 0.406],
+                    std=[0.229, 0.224, 0.225]
+                ),
+            ])
+        else:
+            self.transform = transforms.Compose([
+                transforms.Resize(342),                 
+                transforms.CenterCrop(image_size),            
+                transforms.ToTensor(),                 
+                transforms.Normalize(                  
+                    mean=[0.485, 0.456, 0.406],
+                    std=[0.229, 0.224, 0.225]
+                )
+            ])
 
     def __len__(self):
         return len(self.files)
@@ -48,9 +59,9 @@ class FIDDataModule:
     用于同时加载 real 和 fake 数据集的封装类。
     内部各自创建独立的 DataLoader。
     """
-    def __init__(self, real_path, fake_path, batch_size=32, num_workers=4, image_size=299):
-        self.real_ds = FIDDataset(real_path, image_size=image_size)
-        self.fake_ds = FIDDataset(fake_path, image_size=image_size)
+    def __init__(self, real_path, fake_path, batch_size=32, num_workers=4, image_size=299, use_finetuned=False):
+        self.real_ds = FIDDataset(real_path, image_size=image_size, use_finetuned=use_finetuned)
+        self.fake_ds = FIDDataset(fake_path, image_size=image_size, use_finetuned=use_finetuned)
 
         self.real_loader = DataLoader(
             self.real_ds, batch_size=batch_size, shuffle=False, num_workers=num_workers

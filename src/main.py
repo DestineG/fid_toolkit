@@ -28,6 +28,7 @@ from src.dataset.fid_dataloader import FIDDataModule
 from src.models.inceptionV3_fid import InceptionV3_FID
 from src.models.inceptionV4_fid import InceptionV4_FID
 from src.models.clip_fid import CLIP_FID
+from src.extension.inceptionV3_weather import InceptionV3_Weather
 from src.utils.calc_metrics import fid_from_features
 
 def calc_standard_fid(real_path, fake_path, batch_size=32, device='cuda'):
@@ -51,6 +52,37 @@ def calc_standard_fid(real_path, fake_path, batch_size=32, device='cuda'):
         imgs = imgs.to(device)
         # (B*H*W, C)
         feats = model(imgs)['avgpool']
+        fake_feats.append(feats.cpu())
+    fake_feats = torch.cat(fake_feats, dim=0).numpy()
+
+    # 计算 FID
+    print("real_feats shape:", real_feats.shape)
+    print("fake_feats shape:", fake_feats.shape)
+    fid_value = fid_from_features(real_feats, fake_feats)
+    return fid_value
+
+def calc_standard_fid_weather(real_path, fake_path, batch_size=32, device='cuda'):
+    data = FIDDataModule(real_path, fake_path, batch_size=batch_size, use_finetuned=True)
+    real_loader, fake_loader = data.get_loaders()
+
+    model = InceptionV3_Weather(pretrained=False)
+    model.setup_for_fid(device=device)
+
+    # real features
+    real_feats = []
+    for imgs in tqdm(real_loader, desc="Extracting real features"):
+        imgs = imgs.to(device)
+        # (B*H*W, C)
+        feats = model(imgs)
+        real_feats.append(feats.cpu())
+    real_feats = torch.cat(real_feats, dim=0).numpy()
+
+    # fake features
+    fake_feats = []
+    for imgs in tqdm(fake_loader, desc="Extracting fake features"):
+        imgs = imgs.to(device)
+        # (B*H*W, C)
+        feats = model(imgs)
         fake_feats.append(feats.cpu())
     fake_feats = torch.cat(fake_feats, dim=0).numpy()
 
@@ -353,6 +385,10 @@ if __name__ == "__main__":
     # real_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_aug_default\test_latest\images\real_B"
     # fake_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_aug_default\test_latest\images\fake_B"
 
+    # Standard FID: 70.23100119024217(diff=16.47844123840332, trace=53.75255995183885)
+    # real_path = r"G:\aug\sunny2bigfoggy_aug\testB"
+    # fake_path = r"G:\aug\sunny2bigfoggy_aug\outputs"
+
     # fid下限估计
 
     # Standard FID: 23.940437518594827
@@ -390,8 +426,11 @@ if __name__ == "__main__":
     # fid_self = compute_self_fid(real_path, calc_standard_fid, batch_size=32, device='cuda')
     # print("Self FID:", fid_self)
 
-    fid_std = calc_standard_fid(real_path, fake_path, batch_size=32, device='cuda')
-    print("data_real_path: {}\nStandard FID: {}".format(real_path, fid_std))
+    # fid_std = calc_standard_fid(real_path, fake_path, batch_size=32, device='cuda')
+    # print("data_real_path: {}\nStandard FID: {}".format(real_path, fid_std))
+
+    fid_std_weather = calc_standard_fid_weather(real_path, fake_path, batch_size=32, device='cuda')
+    print("data_real_path: {}\nStandard FID Weather: {}".format(real_path, fid_std_weather))
 
     # fid_spatial = calc_spatial_fid(real_path, fake_path, batch_size=32, device='cuda')
     # print("Spatial FID:", fid_spatial)
