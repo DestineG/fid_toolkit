@@ -92,8 +92,8 @@ def calc_standard_fid_weather(real_path, fake_path, batch_size=32, device='cuda'
     fid_value = fid_from_features(real_feats, fake_feats)
     return fid_value
 
-def calc_spatial_fid(real_path, fake_path, batch_size=32, device='cuda'):
-    data = FIDDataModule(real_path, fake_path, batch_size=batch_size)
+def calc_spatial_fid(real_path, fake_path, batch_size=32, device='cuda', data_ratio=0.1):
+    data = FIDDataModule(real_path, fake_path, batch_size=batch_size, data_ratio=data_ratio)
     real_loader, fake_loader = data.get_loaders()
 
     model = InceptionV3_FID(nodes=('Mixed_5d',), device=device)
@@ -382,38 +382,12 @@ if __name__ == "__main__":
     # Standard FIDV4: 
     # CLIP FID: 
     # Self FID: (calc_standard_fid)
-    # real_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_aug_default\test_latest\images\real_B"
-    # fake_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_aug_default\test_latest\images\fake_B"
+    real_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_aug_default\test_latest\images\real_B"
+    fake_path = r"G:\雨雾模型实验对比\test\sunny2midrainy_aug_default\test_latest\images\fake_B"
 
     # Standard FID: 70.23100119024217(diff=16.47844123840332, trace=53.75255995183885)
     # real_path = r"G:\aug\sunny2bigfoggy_aug\testB"
     # fake_path = r"G:\aug\sunny2bigfoggy_aug\outputs"
-
-    # 1 epoch
-    # Standard FID: 86.74668894261953(diff=32.16731262207031, trace=54.579376320549216)
-    # real_path = r"G:\雨雾模型实验对比\test\sunny12foggy_aug_LHD_Train\real_B"
-    # fake_path = r"G:\雨雾模型实验对比\test\sunny12foggy_aug_LHD_Train\fake_B_epoch1"
-
-    # 5 epoch
-    # Standard FID: 87.56510984051224(diff=31.51609992980957, trace=56.04900991070266)
-    # real_path = r"G:\雨雾模型实验对比\test\sunny12foggy_aug_LHD_Train\real_B"
-    # fake_path = r"G:\雨雾模型实验对比\test\sunny12foggy_aug_LHD_Train\fake_B_epoch5"
-
-    # Standard FID: 40.20251339593317(diff=10.052574157714844, trace=30.14993923821832)
-    # Spatial FID: 
-    # Standard FIDV4: 
-    # CLIP FID: 
-    # Self FID: (calc_standard_fid)
-    # real_path = r"G:\雨雾模型实验对比\test\sunny12midrainy_aug_default_testTRI\test_30\images\real_B"
-    # fake_path = r"G:\雨雾模型实验对比\test\sunny12midrainy_aug_default_testTRI\test_30\images\fake_B"
-
-    # Standard FID: 187.07449879953523(diff=21.001874923706055, trace=(166.07262387582918-1.579588551845214e-06j))
-    # Spatial FID: 3.0905390168003914(diff=0.9482430815696716, trace=2.14229593523072)
-    # Standard FIDV4: 
-    # CLIP FID: 
-    # Self FID: (calc_standard_fid)
-    real_path = r"G:\雨雾模型数据集\实验结果\v4\test3\sunny12bigfoggy_aug_default_testTRI_ASNLoss_ori\test_latest\images\real_B"
-    fake_path = r"G:\雨雾模型数据集\实验结果\v4\test3\sunny12bigfoggy_aug_default_testTRI_ASNLoss_ori\test_latest\images\fake_B"
 
     # fid下限估计
 
