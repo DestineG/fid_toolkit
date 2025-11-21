@@ -77,7 +77,6 @@ class FIDDataModule:
     用于同时加载 real 和 fake 数据集的封装类。
     如果路径不合法，会返回 '_'
     """
-<<<<<<< HEAD
     def __init__(self, real_path, fake_path, batch_size=32, num_workers=4, image_size=299, use_finetuned=False):
         # 路径检查
         if not (real_path and os.path.exists(real_path) and os.path.isdir(real_path)):
@@ -88,11 +87,6 @@ class FIDDataModule:
             self.real_loader = DataLoader(
                 self.real_ds, batch_size=batch_size, shuffle=False, num_workers=num_workers
             )
-=======
-    def __init__(self, real_path, fake_path, batch_size=32, num_workers=4, image_size=299, use_finetuned=False, data_ratio=1.0):
-        self.real_ds = FIDDataset(real_path, image_size=image_size, use_finetuned=use_finetuned, data_ratio=data_ratio)
-        self.fake_ds = FIDDataset(fake_path, image_size=image_size, use_finetuned=use_finetuned, data_ratio=data_ratio)
->>>>>>> 8f0c991bd5f17bacee59389011a06d56d4195677
 
         if not (fake_path and os.path.exists(fake_path) and os.path.isdir(fake_path)):
             print(f"Warning: fake_path '{fake_path}' 不存在或不是文件夹")
