@@ -57,18 +57,27 @@ class FIDDataset(Dataset):
 class FIDDataModule:
     """
     用于同时加载 real 和 fake 数据集的封装类。
-    内部各自创建独立的 DataLoader。
+    如果路径不合法，会返回 '_'
     """
     def __init__(self, real_path, fake_path, batch_size=32, num_workers=4, image_size=299, use_finetuned=False):
-        self.real_ds = FIDDataset(real_path, image_size=image_size, use_finetuned=use_finetuned)
-        self.fake_ds = FIDDataset(fake_path, image_size=image_size, use_finetuned=use_finetuned)
+        # 路径检查
+        if not (real_path and os.path.exists(real_path) and os.path.isdir(real_path)):
+            print(f"Warning: real_path '{real_path}' 不存在或不是文件夹")
+            self.real_loader = "_"
+        else:
+            self.real_ds = FIDDataset(real_path, image_size=image_size, use_finetuned=use_finetuned)
+            self.real_loader = DataLoader(
+                self.real_ds, batch_size=batch_size, shuffle=False, num_workers=num_workers
+            )
 
-        self.real_loader = DataLoader(
-            self.real_ds, batch_size=batch_size, shuffle=False, num_workers=num_workers
-        )
-        self.fake_loader = DataLoader(
-            self.fake_ds, batch_size=batch_size, shuffle=False, num_workers=num_workers
-        )
+        if not (fake_path and os.path.exists(fake_path) and os.path.isdir(fake_path)):
+            print(f"Warning: fake_path '{fake_path}' 不存在或不是文件夹")
+            self.fake_loader = "_"
+        else:
+            self.fake_ds = FIDDataset(fake_path, image_size=image_size, use_finetuned=use_finetuned)
+            self.fake_loader = DataLoader(
+                self.fake_ds, batch_size=batch_size, shuffle=False, num_workers=num_workers
+            )
 
     def get_loaders(self):
         """返回 (real_loader, fake_loader)"""

@@ -40,6 +40,17 @@ def fid_from_features(feat_real: np.ndarray, feat_fake: np.ndarray) -> float:
     print(f"FID calculation details: diff={diff}, trace={trace}")
     return float(fid)
 
+def calc_inception_score(prob_array, eps=1e-16):
+    """
+    prob_array: [N, num_cls]
+    """
+    p_y = np.mean(prob_array, axis=0, keepdims=True)
+
+    kl = prob_array * (np.log(prob_array + eps) - np.log(p_y + eps))
+    kl_mean = np.mean(np.sum(kl, axis=1))
+
+    return float(np.exp(kl_mean))
+
 
 if __name__ == "__main__":
     feat_real = np.random.randn(100, 2048)

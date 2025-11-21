@@ -9,6 +9,7 @@ import warnings
 InceptionNode = Literal[
     'Mixed_5d',
     'avgpool',
+    'fc'
 ]
 
 class InceptionV3_FID(torch.nn.Module):
@@ -44,24 +45,36 @@ class InceptionV3_FID(torch.nn.Module):
     def forward(self, x):
         """
         输入: x [B, 3, 299, 299]
-        输出: dict {节点名: [B*H*W, C]}
+        输出: dict {节点名: [B*H*W, C] 或 [B, C]}
         """
         x = x.to(self.device)
         with torch.no_grad():
             feats = self.feature_extractor(x)
             out = {}
             for name, feat in feats.items():
-                B, C, H, W = feat.shape
-                out[name] = feat.permute(0, 2, 3, 1).reshape(B * H * W, C)
-        return out
+                if feat.dim() == 4:
+                    # BCHW
+                    B, C, H, W = feat.shape
+                    feat = feat.permute(0, 2, 3, 1).reshape(B * H * W, C)
+                elif feat.dim() == 2:
+                    # BC
+                    # 这里保持为 [B, C]
+                    # 或者你也可以 reshape 成 B*1*1,C → B,C
+                    pass
+                else:
+                    raise ValueError(f"Unsupported feature shape {feat.shape} at {name}")
+
+                out[name] = feat
+            return out
 
 
 if __name__ == "__main__":
     x = torch.randn(1, 3, 299, 299)
 
     # 同时提取 Mixed_5d 和 avgpool
-    model = InceptionV3_FID(nodes=('Mixed_5d', 'avgpool'))
+    model = InceptionV3_FID(nodes=('Mixed_5d', 'avgpool', 'fc'))
     feats = model(x)
+    # print(model)
 
     for k, v in feats.items():
         print(k, v.shape)
